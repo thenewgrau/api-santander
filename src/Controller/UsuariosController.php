@@ -2,6 +2,7 @@
 
 namespace App\Controller;
 
+use App\Entity\Conta;
 use App\Entity\Usuario;
 use App\Repository\UsuarioRepository;
 use Doctrine\ORM\EntityManager;
@@ -67,8 +68,24 @@ final class UsuariosController extends AbstractController
         }
 
         // cria o registro no banco de dados
+        
         $entityManager->persist($usuario);
+
+        // instanciar o objeto Conta
+
+        $conta = new Conta();
+        $numeroConta = preg_replace('/\D/', '', uniqid());
+        $conta->setNumero($numeroConta);
+        $conta->setSaldo('0');
+        $conta->setUsuario($usuario);
+
+        // cria registro na tb na conta
+
+        $entityManager->persist($conta);
         $entityManager->flush();
+
+        // retornar os dados de usuario e conta
+
 
         return $this->json($usuario);
     }
