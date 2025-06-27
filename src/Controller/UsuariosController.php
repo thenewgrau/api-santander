@@ -4,6 +4,7 @@ namespace App\Controller;
 
 use App\Entity\Conta;
 use App\Entity\Usuario;
+use App\Repository\ContaRepository;
 use App\Repository\UsuarioRepository;
 use Doctrine\ORM\EntityManager;
 use Doctrine\ORM\EntityManagerInterface;
@@ -13,6 +14,7 @@ use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpKernel\Attribute\MapRequestPayload;
 use Symfony\Component\Routing\Attribute\Route;
+use UsuarioContaDto;
 use UsuarioDto;
 
 #[Route('/api')]
@@ -74,8 +76,7 @@ final class UsuariosController extends AbstractController
         // instanciar o objeto Conta
 
         $conta = new Conta();
-        $numeroConta = preg_replace('/\D/', '', uniqid());
-        $conta->setNumero($numeroConta);
+        $conta->setNumero(preg_replace('/\D/','', uniqid()));
         $conta->setSaldo('0');
         $conta->setUsuario($usuario);
 
@@ -86,7 +87,45 @@ final class UsuariosController extends AbstractController
 
         // retornar os dados de usuario e conta
 
+        $usuarioContaDto = new UsuarioContaDto();
+        $usuarioContaDto->setId($usuario->getId());
+        $usuarioContaDto->setNome($usuario->getNome());
+        $usuarioContaDto->setCpf($usuario->getCpf());
+        $usuarioContaDto->setEmail($usuario->getEmail());
+        $usuarioContaDto->setTelefone($usuario->getTelefone());
+        $usuarioContaDto->setNumeroConta($conta->getNumero());
+        $usuarioContaDto->setSaldo($conta->getSaldo());
 
-        return $this->json($usuario);
+        return $this->json($usuarioContaDto, status:201);
     }
+
+    #[Route('/usuarios/{id}', name: 'usuarios_buscar', methods: ['GET'])]
+    public function buscarPorId(
+        int $id,
+        ContaRepository $contaRepository
+
+
+    ){
+
+       dd($contaRepository->findByUsuarioId($id));
+
+        if (!$conta){
+        return $this->json([
+            'message'=> 'Usuário não encontrado'
+        ], status: 404);
+        }
+
+        $usuarioContaDto = new UsuarioContaDto();
+        $usuarioContaDto->setId($conta->getUsuario()->getId());
+        $usuarioContaDto->setNome($conta->getUsuario()->getNome());
+        $usuarioContaDto->setCpf($conta->getUsuario()->getCpf());
+        $usuarioContaDto->setEmail($conta->getUsuario()->getEmail());
+        $usuarioContaDto->setTelefone($conta->getUsuario()->getTelefone());
+        $usuarioContaDto->setNumeroConta($conta->getNumero());
+        $usuarioContaDto->setSaldo($conta->getSaldo());
+
+        return $usuarioContaDto;
+    }
+
+    
 }

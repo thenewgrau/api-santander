@@ -7,7 +7,6 @@ class UsuarioDto
     private ?string $telefone = null;
     private ?string $cpf= null;
 
-
     public function getNome()
     {
         return $this->nome;
@@ -18,8 +17,6 @@ class UsuarioDto
         $this->nome = $nome;
         return $this;
     }
-
-
 
     public function getEmail()
     {
@@ -32,8 +29,6 @@ class UsuarioDto
         return $this;
     }
 
-
-
     public function getSenha()
     {
         return $this->senha;
@@ -44,8 +39,6 @@ class UsuarioDto
         $this->senha = $senha;
         return $this;
     }
-
-
 
     public function getTelefone()
     {
@@ -58,8 +51,6 @@ class UsuarioDto
         return $this;
     }
 
-
-    
     public function getCpf()
     {
         return $this->cpf;
