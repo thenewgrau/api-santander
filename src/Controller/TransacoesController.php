@@ -3,10 +3,15 @@
 namespace App\Controller;
 
 use App\Dto\TransacaoRealizarDto;
+use App\Entity\Transacao;
 use App\Repository\ContaRepository;
 use App\Repository\UsuarioRepository;
+use DateTime;
+use Doctrine\ORM\EntityManager;
+use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
+use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpKernel\Attribute\MapRequestPayload;
 use Symfony\Component\Routing\Attribute\Route;
 
@@ -18,9 +23,10 @@ final class TransacoesController extends AbstractController
         #[MapRequestPayload(acceptFormat: 'json')]
         TransacaoRealizarDto $entrada,
 
-        ContaRepository $contaRepository
+        ContaRepository $contaRepository,
+        EntityManagerInterface $entityManager
         
-    ): JsonResponse
+    ): Response | JsonResponse
     {
 
         // 1. Validar se existe ID origem / ID destino / valor
@@ -76,14 +82,30 @@ final class TransacoesController extends AbstractController
 
         // 3. Validar se a origem possui saldo suficiente
         
+        if ( (float) $usuarioOrigemExistente->getSaldo() < (float) $entrada->getValor()) {
+            return $this->json([
+            'message' => 'Saldo insuficiente na conta de origem'
+            ], 409);
+        }
 
-        
+        $saldo = (float) $usuarioOrigemExistente->getSaldo();
+        $valorT = (float) $entrada->getValor();
+        $saldoDestino = (float) $usuarioDestinoExistente->getSaldo();
 
-        return $this->json([
-            $entrada, 
-            $usuarioDestinoExistente,
-            $usuarioOrigemExistente
+        $usuarioOrigemExistente->setSaldo($saldo - $valorT);
+        $entityManager->persist($usuarioOrigemExistente);
 
-        ]);
+        $usuarioDestinoExistente->setSaldo($valorT + $saldoDestino);
+        $entityManager->persist($usuarioOrigemExistente);
+
+        $transacao = new Transacao();
+        $transacao->setDataHora(new DateTime());
+        $transacao->setValor($entrada->getValor());
+        $transacao->setContaOrigem($usuarioOrigemExistente);
+        $transacao->setContaDestino($usuarioDestinoExistente);
+        $entityManager->persist($transacao);
+        $entityManager->flush();
+
+        return new Response(status: 204);
     }
 }
