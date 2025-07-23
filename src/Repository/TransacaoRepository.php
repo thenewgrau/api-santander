@@ -8,6 +8,11 @@ use Doctrine\Persistence\ManagerRegistry;
 
 /**
  * @extends ServiceEntityRepository<Transacao>
+ *
+ * @method Transacao|null find($id, $lockMode = null, $lockVersion = null)
+ * @method Transacao|null findOneBy(array $criteria, array $orderBy = null)
+ * @method Transacao[]    findAll()
+ * @method Transacao[]    findBy(array $criteria, array $orderBy = null, $limit = null, $offset = null)
  */
 class TransacaoRepository extends ServiceEntityRepository
 {
@@ -17,25 +22,42 @@ class TransacaoRepository extends ServiceEntityRepository
     }
 
     /**
-     * @return Transacao[] Returns an array of Transacao objects
+     * @return Transacao[]
      */
-    public function findByExampleField($id_transacao): Transacao|Null
+    public function findByContaId(int $id): array
     {
         return $this->createQueryBuilder('t')
-            ->where('t.id = :id')
-            ->setParameter('id', $id_transacao)
+            ->andWhere('t.contaOrigem = :id OR t.contaDestino = :id')
+            ->setParameter('id', $id)
+            ->orderBy('t.dataHora', 'DESC')
             ->getQuery()
-            ->getOneOrNullResult()
+            ->getResult()
         ;
     }
 
-    //    public function findOneBySomeField($value): ?Transacao
-    //    {
-    //        return $this->createQueryBuilder('t')
-    //            ->andWhere('t.exampleField = :val')
-    //            ->setParameter('val', $value)
-    //            ->getQuery()
-    //            ->getOneOrNullResult()
-    //        ;
-    //    }
+
+    // /**
+    //  * @return Transacao[] Returns an array of Transacao objects
+    //  */
+    // public function findByExampleField($value): array
+    // {
+    //     return $this->createQueryBuilder('t')
+    //         ->andWhere('t.exampleField = :val')
+    //         ->setParameter('val', $value)
+    //         ->orderBy('t.id', 'ASC')
+    //         ->setMaxResults(10)
+    //         ->getQuery()
+    //         ->getResult()
+    //     ;
+    // }
+
+    // public function findOneBySomeField($value): ?Transacao
+    // {
+    //     return $this->createQueryBuilder('t')
+    //         ->andWhere('t.exampleField = :val')
+    //         ->setParameter('val', $value)
+    //         ->getQuery()
+    //         ->getOneOrNullResult()
+    //     ;
+    // }
 }
